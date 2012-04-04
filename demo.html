@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBdivC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Test Menu</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="inc/jquery.fs.waveMenu.js"></script>
+    <style type="text/css">
+        #menu {
+            /*display: none;*/
+        }
+        #menu div {
+            width: 150px;
+        }
+
+        #log {
+            color: red;
+            font-size: large;
+        }
+
+        .waveMenuSelected {
+            padding-bottom: 10px;
+            padding-top: 10px;
+            padding-left: 10px;
+            color: red;
+        }
+
+        .waveMenuNeighborsSelected {
+
+        }
+    </style>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#menu').fsWaveMenu({scale: 100, beginningScale: 70});
+
+            $('#menu').children().each(function() {
+                $(this).css("cursor", "pointer").click(function() {
+                    $('#log').html("Pressed " + $(this).text());
+                });
+            });
+        })
+    </script>
+</head>
+<body>
+    <div style="width: 100%; text-align: center;"><div id="log">Wave Menu</div></div>
+    <br />
+    <div id="menu">
+        <div><img src='images/Budget45x45.png' title='MENU 1' alt='' /> MENU 1</div>
+        <div><img src='images/Formazione45x45.png' title='MENU 2' alt='' /> MENU 2</div>
+        <div><img src='images/Organizzazione45x45.png' title='MENU 3' alt='' /> MENU 3</div>
+        <div><img src='images/Presenze45x45.png' title='MENU 4' alt='' /> MENU 4</div>
+        <div><img src='images/Profili45x45.png' title='MENU 5' alt='' /> MENU 5</div>
+        <div><img src='images/Selezione45x45.png' title='MENU 6' alt='' /> MENU 6</div>
+        <div><img src='images/Spese45x45.png' title='MENU 7' alt='' /> MENU 7</div>
+        <div><img src='images/Trasferte45x45.png' title='MENU 8' alt='' /> MENU 8</div>
+        <div><img src='images/Valutazioni45x45.png' title='MENU 9' alt='' /> MENU 9</div>
+        <div><img src='images/Visite45x45.png' title='MENU 10' alt='' /> MENU 10</div>
+        <div>MENU 11</div>
+        <div>MENU 12</div>
+    </div>
+</body>
+</html>
