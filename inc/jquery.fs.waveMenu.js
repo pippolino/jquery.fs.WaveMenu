@@ -4,6 +4,7 @@
     beginningScale: beginning scale for all elements (default is 100)
     neighborsScale: scale for mouse over element's neighbors (default is the beginning scale)
     rememberSelected: if true remeber last selected element (default true)
+    defaultSelectedClass: class for default element selected
 
     TODO:
     - callbackFunction
@@ -16,7 +17,7 @@
 	//Wave Menu Animation
 	function FsWaveMenu(el, options) {
         this.name = "jquery.fs.WaveMenu";
-        this.version = "1.1.0";
+        this.version = "1.1.1";
         this.author = "Federico Soldani",
 
 		//Defaults:
@@ -24,7 +25,8 @@
 			scale: 120,
             beginningScale: 100,
             neighborsScale: 100,
-            rememberSelected: true
+            rememberSelected: true,
+            defaultSelectedClass: "waveMenuDefaultSelected"
 		};
 
 		//Extending options:
@@ -42,6 +44,15 @@
 			var self = this;
             var isBeginningScaled = self.opts.beginningScale == 100;
 
+            // Selected Manage
+            if(self.opts.rememberSelected) {
+                self.$el.hover(function() {
+                    self.restoreScaleElementAndChildren($("[waveSelected]", self.$el).removeClass("waveMenuSelected"), {stop: true});
+                }, function() {
+                    self.scaleElementAndChildren($("[waveSelected]", self.$el).addClass("waveMenuSelected"), {stop: true});
+                });
+            }
+
             self.$el.children().each(function() {
                 var kid = $(this);
                 // Set Initial Dimension
@@ -53,11 +64,6 @@
                     kid.click(function() {
                         $("*", self.$el).removeAttr("waveSelected");
                         $(this).attr("waveSelected", "true");
-                    });
-                    self.$el.hover(function() {
-                        self.restoreScaleElementAndChildren($("[waveSelected]", self.$el).removeClass("waveMenuSelected"), {stop: true});
-                    }, function() {
-                        self.scaleElementAndChildren($("[waveSelected]", self.$el).addClass("waveMenuSelected"), {stop: true});
                     });
                 }
                 // Add Hover Event
@@ -77,6 +83,11 @@
                     }
                 });
             });
+
+            // Set default Selected
+            if(self.opts.rememberSelected && self.opts.defaultSelectedClass != "") {
+                self.scaleElementAndChildren($("." + self.opts.defaultSelectedClass, self.$el).attr("waveSelected", "true").addClass("waveMenuSelected"), {stop: true});
+            }
 
             // Show Menu if hidden only if beginning scale is 100%
             // otherwise is show in resize callback function
@@ -123,9 +134,10 @@
             var self = $(el);
             var oriObj = self.data("waveMenuData");
             if(!oriObj) {
+                var dim = this.getElementDimension(self);
                 oriObj = {
-                    height: self.height(),
-                    width: self.width(),
+                    height: dim.height,
+                    width: dim.width,
                     fontSize: parseInt(self.css("font-size"))
                 };
                 self.data("waveMenuData", oriObj); // Save original
@@ -145,6 +157,29 @@
         // Restore Initial Scale
         restoreScale: function(el) {
             return this.resize($(el), this.opts.beginningScale);
+        },
+
+        getElementDimension: function(el) {
+            /*if($.browser.msie || $.browser.mozilla || !el.is("img")) {
+                return {height: el.height(), width: el.width()};
+            } else {
+                // Request the remote document
+                var dimension = {};
+                jQuery.ajax({
+                    url: el.attr("src"),
+                    type: "GET",
+                    dataType: "html",
+                    async: false,
+                    complete: function() {
+                        var ele = this.get(0);
+                        console.debug(this.outerHeight());
+                        dimension = {height: ele.outerHeight(), width: ele.outerWidth()};
+                    },
+                    context: $("<img/>")
+                });
+                return dimension;
+            }*/
+            return {height: el.height(), width: el.width()};
         }
 	};
 
