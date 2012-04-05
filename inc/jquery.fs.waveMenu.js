@@ -1,16 +1,30 @@
-(function($){
+/*
+    Options:
+    scale: scale for element when mouse over (default is 120)
+    beginningScale: beginning scale for all elements (default is 100)
+    neighborsScale: scale for mouse over element's neighbors (default is the beginning scale)
+    rememberSelected: if true remeber last selected element (default true)
+
+    TODO:
+    - callbackFunction
+    - hidden menu
+    - images without dimension not work on chrome and safari
+ */
+//Optional parameter includeMargin is used when calculating outer dimensions
+(function($) {
 
 	//Wave Menu Animation
 	function FsWaveMenu(el, options) {
         this.name = "jquery.fs.WaveMenu";
-        this.version = "1.0.0";
+        this.version = "1.1.0";
         this.author = "Federico Soldani",
 
 		//Defaults:
 		this.defaults = {
 			scale: 120,
             beginningScale: 100,
-            neighborsScale: 100
+            neighborsScale: 100,
+            rememberSelected: true
 		};
 
 		//Extending options:
@@ -26,75 +40,106 @@
 
 		init: function() {
 			var self = this;
+            var isBeginningScaled = self.opts.beginningScale == 100;
+
             self.$el.children().each(function() {
                 var kid = $(this);
                 // Set Initial Dimension
-                if(self.opts.beginningScale != 100) {
-                    self.scale(kid, self.opts.beginningScale).children().each(function() {
-                        self.scale($(this), self.opts.beginningScale);
+                if(!isBeginningScaled) {
+                    self.scaleElementAndChildren(kid, {scale: self.opts.beginningScale, duration: 0});
+                }
+                // Add Click Event
+                if(self.opts.rememberSelected) {
+                    kid.click(function() {
+                        $("*", self.$el).removeAttr("waveSelected");
+                        $(this).attr("waveSelected", "true");
+                    });
+                    self.$el.hover(function() {
+                        self.restoreScaleElementAndChildren($("[waveSelected]", self.$el).removeClass("waveMenuSelected"), {stop: true});
+                    }, function() {
+                        self.scaleElementAndChildren($("[waveSelected]", self.$el).addClass("waveMenuSelected"), {stop: true});
                     });
                 }
                 // Add Hover Event
                 kid.hover(function() {
-                    self.scale(kid.stop(true, true).addClass("waveMenuSelected")).children().each(function() {
-                        self.scale($(this).stop(true, true));
-                    });
+                    self.scaleElementAndChildren(kid.addClass("waveMenuOver"), {stop: true});
                     // Scale neighbors
                     if( self.opts.neighborsScale != self.opts.beginningScale) {
-                        self.scale(kid.prev().stop(true, true).addClass("waveMenuNeighborsSelected"), self.opts.neighborsScale).children().each(function() {
-                            self.scale($(this).stop(true, true), self.opts.neighborsScale);
-                        });
-                        self.scale(kid.next().stop(true, true).addClass("waveMenuNeighborsSelected"), self.opts.neighborsScale).children().each(function() {
-                            self.scale($(this).stop(true, true), self.opts.neighborsScale);
-                        });
+                        self.scaleElementAndChildren(kid.prev().addClass("waveMenuNeighborsOver"), {stop: true, scale: self.opts.neighborsScale});
+                        self.scaleElementAndChildren(kid.next().addClass("waveMenuNeighborsOver"), {stop: true, scale: self.opts.neighborsScale});
                     }
                 }, function() {
-                    self.restoreScale(kid.stop(true, true).removeClass("waveMenuSelected")).children().each(function() {
-                        self.restoreScale($(this).stop(true, true));
-                    });
+                    self.restoreScaleElementAndChildren(kid.removeClass("waveMenuOver"), {stop: true});
                     // Restore neighbors
                     if( self.opts.neighborsScale != self.opts.beginningScale) {
-                        self.restoreScale(kid.prev().stop(true, true).removeClass("waveMenuNeighborsSelected")).children().each(function() {
-                            self.restoreScale($(this).stop(true, true));
-                        });
-                        self.restoreScale(kid.next().stop(true, true).removeClass("waveMenuNeighborsSelected")).children().each(function() {
-                            self.restoreScale($(this).stop(true, true));
-                        });
+                        self.restoreScaleElementAndChildren(kid.prev().removeClass("waveMenuNeighborsOver"), {stop: true});
+                        self.restoreScaleElementAndChildren(kid.next().removeClass("waveMenuNeighborsOver"), {stop: true});
                     }
                 });
-                self.$el.show();
             });
+
+            // Show Menu if hidden only if beginning scale is 100%
+            // otherwise is show in resize callback function
+            //if(isBeginningScaled) {
+            if(true) {
+                self.$el.fadeIn();
+            }
 		},
 
-        resize: function(el, scale) {
+        resize: function(el, scale, opt, callback) {
             var self = $(el);
             var sc = parseFloat(scale / 100);
-            var original = self.data("original");
+            var original = this.getOriginalDimension(self);
+            var duration = opt && opt.duration ? opt.duration : 400;
             if(original) {
                 return self.animate({
-                    width: original.width * sc,
-                    height: original.height * sc,
-                    fontSize: (original.fontSize * sc) + "px"
-                });
+                    width: parseFloat(original.width * sc).toFixed(2) + "px",
+                    height: parseFloat(original.height * sc).toFixed(2) + "px",
+                    fontSize: parseFloat(original.fontSize * sc).toFixed(2) + "px"
+                }, duration, callback);
             }
             return self;
         },
 
+        scaleElementAndChildren: function(el, opt) {
+            var self = this;
+            var scale = opt.scale ? opt.scale : false;
+            var stop = opt.stop ? opt.stop : false;
+            var duration = opt.duration ? {duration: opt.duration} : {};
+            //var stop = false;
+            self.scale(stop ? el.stop(true, true) : el, scale, duration).children().each(function() {
+                self.scale(stop ? $(this).stop(true, true) : $(this), scale, duration);
+            });
+        },
+
         // Scale Dom elements and children
-        scale: function(el, scale) {
+        scale: function(el, scale, opt, callback) {
             var self = $(el);
-            var original = self.data("original");
-            if(!original) {
-                original = {
+            this.getOriginalDimension(self);
+            return this.resize(self, scale ? scale : this.opts.scale, opt, callback);
+        },
+
+        getOriginalDimension: function(el) {
+            var self = $(el);
+            var oriObj = self.data("waveMenuData");
+            if(!oriObj) {
+                oriObj = {
                     height: self.height(),
                     width: self.width(),
-                    fontSize: parseInt(self.css("font-size")),
-                    paddingTop: self.paddingTop,
-                    paddingBottom: self.paddingBottom
+                    fontSize: parseInt(self.css("font-size"))
                 };
-                self.data("original", original); // Save original
+                self.data("waveMenuData", oriObj); // Save original
             }
-            return this.resize(self, scale ? scale : this.opts.scale);
+            return oriObj;
+        },
+
+        restoreScaleElementAndChildren: function(el, opt) {
+            var self = this;
+            var stop = opt.stop ? opt.stop : false;
+            //var stop = false;
+            self.scale(stop ? el.stop(true, true) : el, self.opts.beginningScale).children().each(function() {
+                self.scale(stop ? $(this).stop(true, true): $(this), self.opts.beginningScale);
+            });
         },
 
         // Restore Initial Scale
@@ -111,5 +156,4 @@
             $(this).data('fsWaveMenu', rev);
         });
 	};
-
 })(jQuery);
