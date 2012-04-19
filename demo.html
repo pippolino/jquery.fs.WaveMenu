@@ -46,10 +46,14 @@
 
             $('#menu').children().each(function() {
                 $(this).css("cursor", "pointer").click(function() {
-                    $('#log').html("Pressed " + $(this).text());
+                    pressed(this);
                 });
             });
         })
+
+		function pressed(el) {
+			$('#log').html("Pressed " + $(el).text());
+		}
     </script>
 </head>
 <body>
@@ -57,7 +61,7 @@
     <br />
     <div id="menu">
         <div class="waveMenuDefaultSelected"><img src='images/Budget45x45.png' title='MENU 1' alt='' /> MENU 1</div>
-        <div><img src='images/Formazione45x45.png' title='MENU 2' alt='' /> MENU 2</div>
+        <div><img src='images/Formazione45x45.png' title='MENU 2' alt='' /><a href="#" onclick="pressed(this);">MENU 2</a></div>
         <div><img src='images/Organizzazione45x45.png' title='MENU 3' alt='' /> MENU 3</div>
         <div><img src='images/Presenze45x45.png' title='MENU 4' alt='' /> MENU 4</div>
         <div><img src='images/Profili45x45.png' title='MENU 5' alt='' /> MENU 5</div>

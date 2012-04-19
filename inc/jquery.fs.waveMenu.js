@@ -10,6 +10,7 @@
 *    beginningScale: beginning scale for all elements (default is 100)
 *    neighborsScale: scale for mouse over element's neighbors (default is the beginning scale)
 *    rememberSelected: if true remeber last selected element (default true)
+*    noWrap: if true set nowrap to menu on init (default true)
 *    defaultSelectedClass: class for default element selected
 *
 *    webkit fix from Paul Irish. thx!
@@ -32,6 +33,7 @@
             beginningScale: 100,
             neighborsScale: 100,
             rememberSelected: true,
+            noWrap: true,
             defaultSelectedClass: "waveMenuDefaultSelected"
 		};
 
@@ -62,6 +64,10 @@
             if(!self.imagesReady) {
                 self.preloadImages();
                 return;
+            }
+
+            if(self.opts.noWrap) {
+                self.$el.css("white-space", "nowrap")
             }
 
             // Scale item selected when leave the menu
@@ -133,7 +139,7 @@
                self.imagesLoaded($("img", self.$el), function($images, $proper, $broken) {
                     $images.each(function() {
                         //var dim = {width: this.width, height: this.height}; // Note: $(this).width() will not work for in memory images.
-                        var dim = {width: self.actual($(this), 'width' ), height: self.actual($(this), 'height' )};
+                        var dim = {width: self.actual($(this), 'width', { absolute : true } ), height: self.actual($(this), 'height', { absolute : true } )};
                         self.getOriginalDimension(this, {force: true, dimension: dim});
                     });
                     self.imagesReady = true;
@@ -151,7 +157,7 @@
                 return self.animate({
                     width: parseFloat(original.width * sc).toFixed(2) + "px",
                     height: parseFloat(original.height * sc).toFixed(2) + "px",
-                    fontSize: parseFloat(original.fontSize * sc).toFixed(2) + "px"
+                    fontSize: parseInt(original.fontSize * sc) + "px"
                 }, duration, callback);
             }
             return self;
@@ -207,8 +213,8 @@
 
         getElementDimension: function(el) {
             var self = this;
-            //return {width: el.width(), height: el.height()};
-            return {width: self.actual($(el), 'width' ), height: self.actual($(el), 'height' )};
+            //return {width: el.width, height: el.height()};
+            return {width: self.actual($(el), 'width', { absolute : true } ), height: self.actual($(el), 'height', { absolute : true } )};
         },
 
         // Images Loaded tnks to Paul Irish
