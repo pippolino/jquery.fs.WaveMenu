@@ -25,7 +25,7 @@
 	//Wave Menu Animation
 	function FsWaveMenu(el, options) {
         this.name = "jquery.fs.WaveMenu";
-        this.version = "1.2.1";
+        this.version = "1.2.2";
 
 		//Defaults:
 		this.defaults = {
@@ -38,7 +38,7 @@
 		};
 
 		//Extending options:
-		this.opts = $.extend({}, this.defaults, options);
+		this.opts = $.extend({}, this.defaults, options ? options : {});
         this.opts.neighborsScale = options.neighborsScale ? options.neighborsScale : this.opts.beginningScale;
 
 		//Privates:
